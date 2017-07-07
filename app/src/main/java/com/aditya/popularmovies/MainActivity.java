@@ -1,8 +1,8 @@
 package com.aditya.popularmovies;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -11,10 +11,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aditya.popularmovies.object.Movie;
 import com.aditya.popularmovies.util.Constants;
+import com.aditya.popularmovies.util.GetMovieTask;
+import com.aditya.popularmovies.util.GetMovieTaskListener;
 import com.aditya.popularmovies.util.NetworkUtils;
 import com.aditya.popularmovies.view.MovieAdapter;
 import com.aditya.popularmovies.view.MovieClickListener;
@@ -23,11 +24,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements MovieClickListener {
+public class MainActivity extends AppCompatActivity implements MovieClickListener, GetMovieTaskListener<String> {
 
 	private RecyclerView movieGrid;
 	private ProgressBar progressBar;
@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
 			movies = savedInstanceState.getParcelableArrayList(Constants.Param.MOVIES);
 		}
 		if (movies == null || movies.size() == 0){
-			fetchMovies(Constants.Url.API_BASE + Constants.Route.POPULAR, Constants.Key.MOVIE_KEY);
+			fetchMovies(Constants.Url.API_BASE + Constants.Route.POPULAR, BuildConfig.API_KEY);
 		}
 
 		adapter = new MovieAdapter(this, this);
@@ -77,9 +77,9 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
 	public boolean onOptionsItemSelected(MenuItem item){
 		int id = item.getItemId();
 		if (id == R.id.action_popular){
-			fetchMovies(Constants.Url.API_BASE + Constants.Route.POPULAR, Constants.Key.MOVIE_KEY);
+			fetchMovies(Constants.Url.API_BASE + Constants.Route.POPULAR, BuildConfig.API_KEY);
 		} else if (id == R.id.action_top){
-			fetchMovies(Constants.Url.API_BASE + Constants.Route.TOP, Constants.Key.MOVIE_KEY);
+			fetchMovies(Constants.Url.API_BASE + Constants.Route.TOP, BuildConfig.API_KEY);
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -93,9 +93,9 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
 	private void fetchMovies(String url, String key){
 		if (NetworkUtils.isOnline(this)){
 			URL popularUrl = NetworkUtils.buildUrl(url, key);
-			new GetMovieTask().execute(popularUrl);
+			new GetMovieTask(this, this).execute(popularUrl);
 		} else {
-			Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG).show();
+			Snackbar.make(getCurrentFocus(), R.string.connection_problem, Snackbar.LENGTH_LONG);
 		}
 	}
 
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
 	}
 
 	private void showConnectionErrorMessage(){
-		Toast.makeText(this, R.string.connection_problem, Toast.LENGTH_LONG).show();
+		Snackbar.make(getCurrentFocus(), R.string.connection_problem, Snackbar.LENGTH_LONG);
 	}
 
 	@Override
@@ -136,37 +136,21 @@ public class MainActivity extends AppCompatActivity implements MovieClickListene
 		goToMovieDetails(movie);
 	}
 
-	private class GetMovieTask extends AsyncTask<URL, Void, String> {
+	@Override
+	public void onPreExecute(){
+		movieGrid.setVisibility(View.INVISIBLE);
+		progressBar.setVisibility(View.VISIBLE);
+		emptyText.setVisibility(View.INVISIBLE);
+	}
 
-		@Override
-		protected void onPreExecute(){
-			super.onPreExecute();
-			movieGrid.setVisibility(View.INVISIBLE);
-			progressBar.setVisibility(View.VISIBLE);
-			emptyText.setVisibility(View.INVISIBLE);
+	@Override
+	public void onPostExecute(String result){
+		progressBar.setVisibility(View.INVISIBLE);
+		if (result != null && !result.equals("")){
+			parseResponse(result);
+		} else {
+			showConnectionErrorMessage();
 		}
-
-		@Override
-		protected String doInBackground(URL... params){
-			URL url = params[0];
-			String movies = null;
-			try {
-				movies = NetworkUtils.getResponseFromUrl(url);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return movies;
-		}
-
-		@Override
-		protected void onPostExecute(String response){
-			progressBar.setVisibility(View.INVISIBLE);
-			if (response != null && !response.equals("")){
-				parseResponse(response);
-			} else {
-				showConnectionErrorMessage();
-			}
-			showMovies();
-		}
+		showMovies();
 	}
 }

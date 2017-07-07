@@ -17,8 +17,4 @@ public class Constants {
 		public static final String MOVIE = "movie";
 		public static final String MOVIES = "movies";
 	}
-
-	public static final class Key {
-		public static final String MOVIE_KEY = "";
-	}
 }

@@ -10,4 +10,4 @@
 
 1. Get your own API key by signing up to https://www.themoviedb.org/account/signup
 2. Request your own API key from Settings -> API menu on The Movie DB account page
-3. Place your generated key on app/src/main/java/com/aditya/popularmovies/util/Constants.java at MOVIE_KEY attribute of Key class.
+3. Place your generated key on app/build.gradle at API_KEY attribute of buildTypes.each

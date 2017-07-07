@@ -50,6 +50,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 	}
 
 	private void setDetailView(){
+		getSupportActionBar().setTitle(movie.getTitle());
 		movieTitle.setText(movie.getTitle());
 		String imageUrl = Constants.Url.IMAGE_BASE + movie.getPosterPath();
 		Picasso.with(this).load(imageUrl).into(moviePoster);
