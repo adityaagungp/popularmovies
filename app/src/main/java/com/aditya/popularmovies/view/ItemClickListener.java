@@ -1,5 +1,5 @@
 package com.aditya.popularmovies.view;
 
-public interface MovieClickListener {
+public interface ItemClickListener {
 	void onItemClick(int index);
 }

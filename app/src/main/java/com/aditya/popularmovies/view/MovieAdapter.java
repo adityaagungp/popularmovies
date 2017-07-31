@@ -18,9 +18,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
 	private Context context;
 	private ArrayList<Movie> movies;
-	private MovieClickListener listener;
+	private ItemClickListener listener;
 
-	public MovieAdapter(Context context, MovieClickListener listener){
+	public MovieAdapter(Context context, ItemClickListener listener){
 		this.context = context;
 		this.listener = listener;
 	}

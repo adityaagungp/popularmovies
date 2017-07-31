@@ -1,25 +1,47 @@
 package com.aditya.popularmovies;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.aditya.popularmovies.object.Movie;
+import com.aditya.popularmovies.object.Video;
+import com.aditya.popularmovies.presenter.ReviewsPresenter;
+import com.aditya.popularmovies.presenter.TrailersPresenter;
 import com.aditya.popularmovies.util.Constants;
+import com.aditya.popularmovies.view.ItemClickListener;
+import com.aditya.popularmovies.view.MovieDetailsAdapter;
+import com.aditya.popularmovies.view.ReviewsView;
+import com.aditya.popularmovies.view.TrailersView;
 import com.squareup.picasso.Picasso;
 
-public class MovieDetailActivity extends AppCompatActivity {
+public class MovieDetailActivity extends AppCompatActivity implements ItemClickListener, TrailersView, ReviewsView {
 
+	private RecyclerView list;
 	private TextView movieTitle;
 	private ImageView moviePoster;
 	private TextView releaseDate;
 	private TextView userRating;
+	private ImageButton btnFavorite;
 	private TextView synopsis;
 
 	private Movie movie;
+	private TrailersPresenter trailersPresenter;
+	private ReviewsPresenter reviewsPresenter;
+	private MovieDetailsAdapter mAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -27,16 +49,31 @@ public class MovieDetailActivity extends AppCompatActivity {
 		setContentView(R.layout.activity_movie_detail);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-		movieTitle = (TextView) findViewById(R.id.movieTitle);
-		moviePoster = (ImageView) findViewById(R.id.moviePoster);
-		releaseDate = (TextView) findViewById(R.id.releaseDate);
-		userRating = (TextView) findViewById(R.id.userRating);
-		synopsis = (TextView) findViewById(R.id.synopsis);
+		list = (RecyclerView) findViewById(R.id.list);
+		LinearLayoutManager llm = new LinearLayoutManager(this);
+		list.setLayoutManager(llm);
+		mAdapter = new MovieDetailsAdapter(this, this);
+		list.setAdapter(mAdapter);
+		DividerItemDecoration divider = new DividerItemDecoration(list.getContext(), llm.getOrientation());
+		list.addItemDecoration(divider);
+
+		View view = LayoutInflater.from(this).inflate(R.layout.header_movie_details, null, false);
+		movieTitle = (TextView) view.findViewById(R.id.movieTitle);
+		moviePoster = (ImageView) view.findViewById(R.id.moviePoster);
+		releaseDate = (TextView) view.findViewById(R.id.releaseDate);
+		userRating = (TextView) view.findViewById(R.id.userRating);
+		btnFavorite = (ImageButton) view.findViewById(R.id.btnFavorite);
+		synopsis = (TextView) view.findViewById(R.id.synopsis);
+		mAdapter.setHeader(view);
 
 		Intent intent = getIntent();
 		if (intent.hasExtra(Constants.Param.MOVIE)){
 			movie = intent.getParcelableExtra(Constants.Param.MOVIE);
 			setDetailView();
+			trailersPresenter = new TrailersPresenter(this, this, movie.getId());
+			trailersPresenter.getTrailers();
+			reviewsPresenter = new ReviewsPresenter(this, this, movie.getId());
+			reviewsPresenter.fetchReviews();
 		}
 	}
 
@@ -47,6 +84,32 @@ public class MovieDetailActivity extends AppCompatActivity {
 			onBackPressed();
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onItemClick(int index){
+		Video video = trailersPresenter.getVideos().get(index);
+		startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + video.getKey())));
+	}
+
+	@Override
+	public void onSuccessGetTrailer(){
+		mAdapter.setTrailers(trailersPresenter.getVideos());
+	}
+
+	@Override
+	public void onFailGetTrailer(){
+		showConnectionErrorMessage();
+	}
+
+	@Override
+	public void onSuccessGetReviews(){
+		mAdapter.setReviews(reviewsPresenter.getReviews());
+	}
+
+	@Override
+	public void onFailGetReviews(){
+		showConnectionErrorMessage();
 	}
 
 	private void setDetailView(){
@@ -61,5 +124,19 @@ public class MovieDetailActivity extends AppCompatActivity {
 		ratingBuilder.append(movie.getVoteAverage()).append("/10");
 		userRating.setText(new String(ratingBuilder));
 		synopsis.setText(movie.getOverview());
+		setButtonFavorite();
+	}
+
+	private void setButtonFavorite(){
+		int drawableId = movie.isFavorite() ? R.drawable.ic_favorite_full : R.drawable.ic_favorite;
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
+			btnFavorite.setBackgroundDrawable(ContextCompat.getDrawable(this, drawableId));
+		} else {
+			btnFavorite.setBackground(ContextCompat.getDrawable(this, drawableId));
+		}
+	}
+
+	private void showConnectionErrorMessage(){
+		Snackbar.make(getWindow().getDecorView().getRootView(), R.string.connection_problem, Snackbar.LENGTH_LONG);
 	}
 }

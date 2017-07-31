@@ -3,17 +3,39 @@ package com.aditya.popularmovies.object;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Movie implements Parcelable{
 
+	@SerializedName("id")
+	@Expose
 	private long id;
+
+	@SerializedName("vote_average")
+	@Expose
 	private double voteAverage;
+
+	@SerializedName("title")
+	@Expose
 	private String title;
+
+	@SerializedName("poster_path")
+	@Expose
 	private String posterPath;
+
+	@SerializedName("overview")
+	@Expose
 	private String overview;
+
+	@SerializedName("release_date")
+	@Expose
 	private String releaseDate;
+
+	private boolean isFavorite;
 
 	public Movie(){
 
@@ -67,6 +89,14 @@ public class Movie implements Parcelable{
 		this.releaseDate = releaseDate;
 	}
 
+	public boolean isFavorite(){
+		return isFavorite;
+	}
+
+	public void setIsFavorite(boolean isfavorite){
+		this.isFavorite = isfavorite;
+	}
+
 	public void setValueFromJson(JSONObject object) throws JSONException {
 		setId(object.getLong("id"));
 		setVoteAverage(object.getDouble("vote_average"));
@@ -74,6 +104,7 @@ public class Movie implements Parcelable{
 		setPosterPath(object.getString("poster_path"));
 		setOverview(object.getString("overview"));
 		setReleaseDate(object.getString("release_date"));
+		this.isFavorite = false;
 	}
 
 	protected Movie(Parcel in){
@@ -83,6 +114,7 @@ public class Movie implements Parcelable{
 		posterPath = in.readString();
 		overview = in.readString();
 		releaseDate = in.readString();
+		isFavorite = in.readInt() == 1;
 	}
 
 	public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -110,5 +142,6 @@ public class Movie implements Parcelable{
 		dest.writeString(posterPath);
 		dest.writeString(overview);
 		dest.writeString(releaseDate);
+		dest.writeInt(isFavorite ? 1 : 0);
 	}
 }

@@ -7,4 +7,6 @@
 	<string name="movie_detail">Movie Detail</string>
 	<string name="no_internet">No internet connection</string>
 	<string name="release_date">Release date</string>
+	<string name="reviews">Reviews</string>
+	<string name="trailers">Trailers</string>
 </resources>
