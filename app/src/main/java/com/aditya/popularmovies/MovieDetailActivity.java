@@ -1,5 +1,6 @@
 package com.aditya.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -17,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.aditya.popularmovies.data.MovieContract;
 import com.aditya.popularmovies.object.Movie;
 import com.aditya.popularmovies.object.Video;
 import com.aditya.popularmovies.presenter.ReviewsPresenter;
@@ -64,6 +66,7 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 		userRating = (TextView) view.findViewById(R.id.userRating);
 		btnFavorite = (ImageButton) view.findViewById(R.id.btnFavorite);
 		synopsis = (TextView) view.findViewById(R.id.synopsis);
+
 		mAdapter.setHeader(view);
 
 		Intent intent = getIntent();
@@ -75,6 +78,17 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 			reviewsPresenter = new ReviewsPresenter(this, this, movie.getId());
 			reviewsPresenter.fetchReviews();
 		}
+
+		btnFavorite.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v){
+				if (movie.isFavorite()){
+					unfavoriteMovie();
+				} else {
+					favoriteMovie();
+				}
+			}
+		});
 	}
 
 	@Override
@@ -124,19 +138,45 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 		ratingBuilder.append(movie.getVoteAverage()).append("/10");
 		userRating.setText(new String(ratingBuilder));
 		synopsis.setText(movie.getOverview());
-		setButtonFavorite();
+		setButtonFavorite(movie.isFavorite() ? R.drawable.ic_favorite_full : R.drawable.ic_favorite);
 	}
 
-	private void setButtonFavorite(){
-		int drawableId = movie.isFavorite() ? R.drawable.ic_favorite_full : R.drawable.ic_favorite;
+	private void setButtonFavorite(int id){
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-			btnFavorite.setBackgroundDrawable(ContextCompat.getDrawable(this, drawableId));
+			btnFavorite.setBackgroundDrawable(ContextCompat.getDrawable(this, id));
 		} else {
-			btnFavorite.setBackground(ContextCompat.getDrawable(this, drawableId));
+			btnFavorite.setBackground(ContextCompat.getDrawable(this, id));
 		}
 	}
 
 	private void showConnectionErrorMessage(){
 		Snackbar.make(getWindow().getDecorView().getRootView(), R.string.connection_problem, Snackbar.LENGTH_LONG);
+	}
+
+	private void favoriteMovie(){
+		ContentValues cv = new ContentValues();
+		cv.put(MovieContract.MovieEntry._ID, movie.getId());
+		cv.put(MovieContract.MovieEntry.TITLE, movie.getTitle());
+		Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+		if (uri != null){
+			//insertion success
+			movie.setIsFavorite(true);
+			setButtonFavorite(R.drawable.ic_favorite_full);
+		}
+	}
+
+	private void unfavoriteMovie(){
+		String stringId = Long.toString(movie.getId());
+		Uri uri = MovieContract.MovieEntry.CONTENT_URI;
+		uri = uri.buildUpon().appendPath(stringId).build();
+		try {
+			int nDeleted = getContentResolver().delete(uri, null, null);
+			if (nDeleted > 0){
+				movie.setIsFavorite(false);
+				setButtonFavorite(R.drawable.ic_favorite);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

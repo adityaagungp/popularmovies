@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ItemClickListener, MoviesView {
 
+	private static final int MOVIE_LOADER_ID = 1;
+
 	private RecyclerView movieGrid;
 	private ProgressBar progressBar;
 	private TextView emptyText;
@@ -54,6 +56,14 @@ public class MainActivity extends AppCompatActivity implements ItemClickListener
 		GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
 		movieGrid.setLayoutManager(layoutManager);
 		movieGrid.setAdapter(adapter);
+
+		getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, moviesPresenter);
+	}
+
+	@Override
+	protected void onResume(){
+		super.onResume();
+		getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, moviesPresenter);
 	}
 
 	@Override
@@ -73,8 +83,13 @@ public class MainActivity extends AppCompatActivity implements ItemClickListener
 		int id = item.getItemId();
 		if (id == R.id.action_popular){
 			fetchPopularMovies();
+			moviesPresenter.setMovieSortedByFavorite(false);
 		} else if (id == R.id.action_top){
 			fetchTopMovies();
+			moviesPresenter.setMovieSortedByFavorite(false);
+		} else if (id == R.id.action_favorites){
+			moviesPresenter.setMovieSortedByFavorite(true);
+			moviesPresenter.sortByFavorite();
 		}
 		return super.onOptionsItemSelected(item);
 	}

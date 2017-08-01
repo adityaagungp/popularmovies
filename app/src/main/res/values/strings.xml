@@ -1,6 +1,7 @@
 <resources>
 	<string name="app_name">Pop Movies</string>
 	<string name="connection_problem">Oops! There is connection problem</string>
+	<string name="content_authority">com.aditya.popularmovies.app</string>
 	<string name="empty_movie">Sorry, there is no movie to display</string>
 	<string name="get_popular">Get Popular</string>
 	<string name="get_top_rated">Get Top Rated</string>
@@ -8,5 +9,6 @@
 	<string name="no_internet">No internet connection</string>
 	<string name="release_date">Release date</string>
 	<string name="reviews">Reviews</string>
+	<string name="sort_by_favorite">Sort by Favorite</string>
 	<string name="trailers">Trailers</string>
 </resources>
