@@ -25,7 +25,7 @@ import com.aditya.popularmovies.presenter.ReviewsPresenter;
 import com.aditya.popularmovies.presenter.TrailersPresenter;
 import com.aditya.popularmovies.util.Constants;
 import com.aditya.popularmovies.view.ItemClickListener;
-import com.aditya.popularmovies.view.MovieDetailsAdapter;
+import com.aditya.popularmovies.adapter.MovieDetailsAdapter;
 import com.aditya.popularmovies.view.ReviewsView;
 import com.aditya.popularmovies.view.TrailersView;
 import com.squareup.picasso.Picasso;
@@ -129,7 +129,7 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 	private void setDetailView(){
 		getSupportActionBar().setTitle(movie.getTitle());
 		movieTitle.setText(movie.getTitle());
-		String imageUrl = Constants.Url.IMAGE_BASE + movie.getPosterPath();
+		String imageUrl = BuildConfig.API_IMAGE + movie.getPosterPath();
 		Picasso.with(this).load(imageUrl).into(moviePoster);
 		StringBuilder releaseBuilder = new StringBuilder();
 		releaseBuilder.append(getString(R.string.release_date)).append(": ").append(movie.getReleaseDate());
@@ -159,7 +159,6 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 		cv.put(MovieContract.MovieEntry.TITLE, movie.getTitle());
 		Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
 		if (uri != null){
-			//insertion success
 			movie.setIsFavorite(true);
 			setButtonFavorite(R.drawable.ic_favorite_full);
 		}

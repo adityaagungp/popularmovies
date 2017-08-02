@@ -9,6 +9,8 @@ import com.google.gson.annotations.SerializedName;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Comparator;
+
 public class Movie implements Parcelable{
 
 	@SerializedName("id")
@@ -97,16 +99,6 @@ public class Movie implements Parcelable{
 		this.isFavorite = isfavorite;
 	}
 
-	public void setValueFromJson(JSONObject object) throws JSONException {
-		setId(object.getLong("id"));
-		setVoteAverage(object.getDouble("vote_average"));
-		setTitle(object.getString("original_title"));
-		setPosterPath(object.getString("poster_path"));
-		setOverview(object.getString("overview"));
-		setReleaseDate(object.getString("release_date"));
-		this.isFavorite = false;
-	}
-
 	protected Movie(Parcel in){
 		id = in.readLong();
 		voteAverage = in.readDouble();
@@ -144,4 +136,17 @@ public class Movie implements Parcelable{
 		dest.writeString(releaseDate);
 		dest.writeInt(isFavorite ? 1 : 0);
 	}
+
+	public static Comparator<Movie> comparator = new Comparator<Movie>() {
+		@Override
+		public int compare(Movie o1, Movie o2){
+			if (o1.isFavorite() == o2.isFavorite()){
+				return 0;
+			} else if (o1.isFavorite() && !o2.isFavorite()){
+				return -1;
+			} else {
+				return 1;
+			}
+		}
+	};
 }

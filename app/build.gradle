@@ -19,6 +19,7 @@ android {
     }
     buildTypes.each {
         it.buildConfigField 'String', 'API_BASE', '"http://api.themoviedb.org/3/"'
+        it.buildConfigField 'String', 'API_IMAGE', '"http://image.tmdb.org/t/p/w342/"'
         it.buildConfigField 'String', 'API_KEY', '""'
     }
 }

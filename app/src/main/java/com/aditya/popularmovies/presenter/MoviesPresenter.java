@@ -15,6 +15,7 @@ import com.aditya.popularmovies.util.NetworkUtils;
 import com.aditya.popularmovies.view.MoviesView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -93,20 +94,7 @@ public class MoviesPresenter implements Callback<MoviesResponse>, LoaderManager.
 	}
 
 	public void sortByFavorite(){
-		ArrayList<Movie> favoriteMovies = new ArrayList<>();
-		ArrayList<Movie> unfavoriteMovies = new ArrayList<>();
-		for (Movie movie : movies){
-			if (movie.isFavorite()){
-				favoriteMovies.add(movie);
-			} else {
-				unfavoriteMovies.add(movie);
-			}
-		}
-		movies.clear();
-		movies.addAll(favoriteMovies);
-		movies.addAll(unfavoriteMovies);
-		favoriteMovies.clear();
-		unfavoriteMovies.clear();
+		Collections.sort(movies, Movie.comparator);
 		view.onSuccessGetMovies();
 	}
 

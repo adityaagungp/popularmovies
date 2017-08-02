@@ -1,4 +1,4 @@
-package com.aditya.popularmovies.view;
+package com.aditya.popularmovies.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -11,6 +11,7 @@ import com.aditya.popularmovies.R;
 import com.aditya.popularmovies.object.Review;
 import com.aditya.popularmovies.object.Section;
 import com.aditya.popularmovies.object.Video;
+import com.aditya.popularmovies.view.ItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;

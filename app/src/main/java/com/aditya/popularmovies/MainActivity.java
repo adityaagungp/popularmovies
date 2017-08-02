@@ -16,7 +16,7 @@ import com.aditya.popularmovies.object.Movie;
 import com.aditya.popularmovies.presenter.MoviesPresenter;
 import com.aditya.popularmovies.util.Constants;
 import com.aditya.popularmovies.view.ItemClickListener;
-import com.aditya.popularmovies.view.MovieAdapter;
+import com.aditya.popularmovies.adapter.MovieAdapter;
 import com.aditya.popularmovies.view.MoviesView;
 
 import java.util.ArrayList;

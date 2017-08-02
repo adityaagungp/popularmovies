@@ -1,4 +1,4 @@
-package com.aditya.popularmovies.view;
+package com.aditya.popularmovies.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,9 +7,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.aditya.popularmovies.BuildConfig;
 import com.aditya.popularmovies.R;
 import com.aditya.popularmovies.object.Movie;
-import com.aditya.popularmovies.util.Constants;
+import com.aditya.popularmovies.view.ItemClickListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 		}
 
 		void bind(Movie movie){
-			String imageUrl = Constants.Url.IMAGE_BASE + movie.getPosterPath();
+			String imageUrl = BuildConfig.API_IMAGE + movie.getPosterPath();
 			Picasso.with(context).load(imageUrl).into(thumbnail);
 		}
 
