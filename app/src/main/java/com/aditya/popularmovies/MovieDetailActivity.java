@@ -1,6 +1,5 @@
 package com.aditya.popularmovies;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -18,19 +17,21 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.aditya.popularmovies.data.MovieContract;
+import com.aditya.popularmovies.adapter.MovieDetailsAdapter;
 import com.aditya.popularmovies.object.Movie;
 import com.aditya.popularmovies.object.Video;
+import com.aditya.popularmovies.presenter.MovieDetailPresenter;
 import com.aditya.popularmovies.presenter.ReviewsPresenter;
 import com.aditya.popularmovies.presenter.TrailersPresenter;
 import com.aditya.popularmovies.util.Constants;
 import com.aditya.popularmovies.view.ItemClickListener;
-import com.aditya.popularmovies.adapter.MovieDetailsAdapter;
+import com.aditya.popularmovies.view.MovieDetailView;
 import com.aditya.popularmovies.view.ReviewsView;
 import com.aditya.popularmovies.view.TrailersView;
 import com.squareup.picasso.Picasso;
 
-public class MovieDetailActivity extends AppCompatActivity implements ItemClickListener, TrailersView, ReviewsView {
+public class MovieDetailActivity extends AppCompatActivity implements ItemClickListener, MovieDetailView,
+                                                                      TrailersView, ReviewsView {
 
 	private RecyclerView list;
 	private TextView movieTitle;
@@ -40,7 +41,7 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 	private ImageButton btnFavorite;
 	private TextView synopsis;
 
-	private Movie movie;
+	private MovieDetailPresenter detailPresenter;
 	private TrailersPresenter trailersPresenter;
 	private ReviewsPresenter reviewsPresenter;
 	private MovieDetailsAdapter mAdapter;
@@ -68,11 +69,12 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 		synopsis = (TextView) view.findViewById(R.id.synopsis);
 
 		mAdapter.setHeader(view);
+		detailPresenter = new MovieDetailPresenter(this, this);
 
 		Intent intent = getIntent();
 		if (intent.hasExtra(Constants.Param.MOVIE)){
-			movie = intent.getParcelableExtra(Constants.Param.MOVIE);
-			setDetailView();
+			Movie movie = intent.getParcelableExtra(Constants.Param.MOVIE);
+			detailPresenter.setMovie(movie);
 			trailersPresenter = new TrailersPresenter(this, this, movie.getId());
 			trailersPresenter.getTrailers();
 			reviewsPresenter = new ReviewsPresenter(this, this, movie.getId());
@@ -82,11 +84,7 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 		btnFavorite.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v){
-				if (movie.isFavorite()){
-					unfavoriteMovie();
-				} else {
-					favoriteMovie();
-				}
+				detailPresenter.changeFavoriteMovie();
 			}
 		});
 	}
@@ -103,7 +101,11 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 	@Override
 	public void onItemClick(int index){
 		Video video = trailersPresenter.getVideos().get(index);
-		startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + video.getKey())));
+		Uri videoPage = Uri.parse("http://www.youtube.com/watch?v=" + video.getKey());
+		Intent intent = new Intent(Intent.ACTION_VIEW, videoPage);
+		if (intent.resolveActivity(getPackageManager()) != null){
+			startActivity(intent);
+		}
 	}
 
 	@Override
@@ -113,7 +115,7 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 
 	@Override
 	public void onFailGetTrailer(){
-		showConnectionErrorMessage();
+		showErrorMessage(getString(R.string.connection_problem));
 	}
 
 	@Override
@@ -123,10 +125,25 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 
 	@Override
 	public void onFailGetReviews(){
-		showConnectionErrorMessage();
+		showErrorMessage(getString(R.string.connection_problem));
 	}
 
-	private void setDetailView(){
+	@Override
+	public void onMovieUpdated(Movie movie){
+		setDetailView(movie);
+	}
+
+	@Override
+	public void onFailMakeFavorite(){
+		showErrorMessage(getString(R.string.fail_favorite));
+	}
+
+	@Override
+	public void onFailMakeUnfavorite(){
+		showErrorMessage(getString(R.string.fail_unfavorite));
+	}
+
+	private void setDetailView(Movie movie){
 		getSupportActionBar().setTitle(movie.getTitle());
 		movieTitle.setText(movie.getTitle());
 		String imageUrl = BuildConfig.API_IMAGE + movie.getPosterPath();
@@ -149,33 +166,7 @@ public class MovieDetailActivity extends AppCompatActivity implements ItemClickL
 		}
 	}
 
-	private void showConnectionErrorMessage(){
-		Snackbar.make(getWindow().getDecorView().getRootView(), R.string.connection_problem, Snackbar.LENGTH_LONG);
-	}
-
-	private void favoriteMovie(){
-		ContentValues cv = new ContentValues();
-		cv.put(MovieContract.MovieEntry._ID, movie.getId());
-		cv.put(MovieContract.MovieEntry.TITLE, movie.getTitle());
-		Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
-		if (uri != null){
-			movie.setIsFavorite(true);
-			setButtonFavorite(R.drawable.ic_favorite_full);
-		}
-	}
-
-	private void unfavoriteMovie(){
-		String stringId = Long.toString(movie.getId());
-		Uri uri = MovieContract.MovieEntry.CONTENT_URI;
-		uri = uri.buildUpon().appendPath(stringId).build();
-		try {
-			int nDeleted = getContentResolver().delete(uri, null, null);
-			if (nDeleted > 0){
-				movie.setIsFavorite(false);
-				setButtonFavorite(R.drawable.ic_favorite);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	private void showErrorMessage(String message){
+		Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_LONG);
 	}
 }

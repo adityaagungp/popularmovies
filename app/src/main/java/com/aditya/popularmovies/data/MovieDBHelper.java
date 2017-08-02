@@ -7,7 +7,22 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MovieDBHelper extends SQLiteOpenHelper{
 
 	private static final String DATABASE_NAME = "movies.db";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
+
+	private static final String CREATE_MOVIE_TABLE = "CREATE TABLE " +
+		MovieContract.MovieEntry.TABLE_MOVIE + "(" +
+		MovieContract.MovieEntry._ID + " INTEGER PRIMARY KEY, " +
+		MovieContract.MovieEntry.TITLE + " TEXT NOT NULL, " +
+		MovieContract.MovieEntry.POSTER + " TEXT NOT NULL, " +
+		MovieContract.MovieEntry.OVERVIEW + " TEXT NOT NULL, " +
+		MovieContract.MovieEntry.RATING + " DOUBLE NOT NULL, " +
+		MovieContract.MovieEntry.RELEASE + " TEXT NOT NULL);";
+
+	private static final String ALTER_MOVIE_TABLE = "ALTER TABLE " + MovieContract.MovieEntry.TABLE_MOVIE +
+		" ADD COLUMN " + MovieContract.MovieEntry.POSTER + " TEXT NOT NULL," +
+		MovieContract.MovieEntry.OVERVIEW + " TEXT NOT NULL, " +
+		MovieContract.MovieEntry.RATING + " DOUBLE NOT NULL, " +
+		MovieContract.MovieEntry.RELEASE + " TEXT NOT NULL;";
 
 	public MovieDBHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -15,18 +30,13 @@ public class MovieDBHelper extends SQLiteOpenHelper{
 
 	@Override
 	public void onCreate(SQLiteDatabase db){
-		final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " +
-			MovieContract.MovieEntry.TABLE_MOVIE + "(" + MovieContract.MovieEntry._ID + " INTEGER PRIMARY KEY, " +
-			MovieContract.MovieEntry.TITLE + " TEXT NOT NULL);";
-		db.execSQL(SQL_CREATE_MOVIE_TABLE);
+		db.execSQL(CREATE_MOVIE_TABLE);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
-		// Drop the table
-		db.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieEntry.TABLE_MOVIE);
-
-		// re-create database
-		onCreate(db);
+		if (oldVersion < 2) {
+			db.execSQL(ALTER_MOVIE_TABLE);
+		}
 	}
 }

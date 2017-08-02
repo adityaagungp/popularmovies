@@ -6,9 +6,6 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.Comparator;
 
 public class Movie implements Parcelable{
@@ -37,7 +34,7 @@ public class Movie implements Parcelable{
 	@Expose
 	private String releaseDate;
 
-	private boolean isFavorite;
+	private boolean favorite;
 
 	public Movie(){
 
@@ -92,11 +89,11 @@ public class Movie implements Parcelable{
 	}
 
 	public boolean isFavorite(){
-		return isFavorite;
+		return favorite;
 	}
 
-	public void setIsFavorite(boolean isfavorite){
-		this.isFavorite = isfavorite;
+	public void setFavorite(boolean isfavorite){
+		this.favorite = isfavorite;
 	}
 
 	protected Movie(Parcel in){
@@ -106,7 +103,7 @@ public class Movie implements Parcelable{
 		posterPath = in.readString();
 		overview = in.readString();
 		releaseDate = in.readString();
-		isFavorite = in.readInt() == 1;
+		favorite = in.readInt() == 1;
 	}
 
 	public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -134,7 +131,7 @@ public class Movie implements Parcelable{
 		dest.writeString(posterPath);
 		dest.writeString(overview);
 		dest.writeString(releaseDate);
-		dest.writeInt(isFavorite ? 1 : 0);
+		dest.writeInt(favorite ? 1 : 0);
 	}
 
 	public static Comparator<Movie> comparator = new Comparator<Movie>() {

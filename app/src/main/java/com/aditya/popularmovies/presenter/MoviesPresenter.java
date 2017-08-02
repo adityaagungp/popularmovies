@@ -1,5 +1,6 @@
 package com.aditya.popularmovies.presenter;
 
+import android.content.AsyncQueryHandler;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -15,7 +16,6 @@ import com.aditya.popularmovies.util.NetworkUtils;
 import com.aditya.popularmovies.view.MoviesView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,7 +23,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MoviesPresenter implements Callback<MoviesResponse>, LoaderManager.LoaderCallbacks<Cursor> {
+public class MoviesPresenter extends AsyncQueryHandler implements Callback<MoviesResponse>, LoaderManager
+	.LoaderCallbacks<Cursor> {
 
 	private Context context;
 	private MoviesView view;
@@ -32,6 +33,7 @@ public class MoviesPresenter implements Callback<MoviesResponse>, LoaderManager.
 	private boolean movieSortedByFavorite;
 
 	public MoviesPresenter(MoviesView view, Context context){
+		super(context.getContentResolver());
 		this.view = view;
 		this.context = context;
 		movieSortedByFavorite = false;
@@ -85,7 +87,7 @@ public class MoviesPresenter implements Callback<MoviesResponse>, LoaderManager.
 
 	private void favoriteMovies(){
 		for (Movie movie : movies){
-			movie.setIsFavorite(favoriteIds.contains(movie.getId()));
+			movie.setFavorite(favoriteIds.contains(movie.getId()));
 		}
 		if (movieSortedByFavorite){
 			sortByFavorite();
@@ -94,8 +96,7 @@ public class MoviesPresenter implements Callback<MoviesResponse>, LoaderManager.
 	}
 
 	public void sortByFavorite(){
-		Collections.sort(movies, Movie.comparator);
-		view.onSuccessGetMovies();
+		startQuery(1, null, MovieContract.MovieEntry.CONTENT_URI, null, null, null, MovieContract.MovieEntry._ID);
 	}
 
 	@Override
@@ -160,5 +161,32 @@ public class MoviesPresenter implements Callback<MoviesResponse>, LoaderManager.
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader){
 
+	}
+
+	@Override
+	protected void onQueryComplete(int token, Object cookie, Cursor cursor){
+		int idIndex = cursor.getColumnIndex(MovieContract.MovieEntry._ID);
+		int rateIndex = cursor.getColumnIndex(MovieContract.MovieEntry.RATING);
+		int titleIndex = cursor.getColumnIndex(MovieContract.MovieEntry.TITLE);
+		int posterIndex = cursor.getColumnIndex(MovieContract.MovieEntry.POSTER);
+		int overviewIndex = cursor.getColumnIndex(MovieContract.MovieEntry.OVERVIEW);
+		int releaseIndex = cursor.getColumnIndex(MovieContract.MovieEntry.RELEASE);
+
+		if (cursor.getCount() > 0){
+			ArrayList<Movie> favoriteMovies = new ArrayList<>();
+			while (cursor.moveToNext()){
+				Movie movie = new Movie();
+				movie.setId(cursor.getLong(idIndex));
+				movie.setVoteAverage(cursor.getDouble(rateIndex));
+				movie.setTitle(cursor.getString(titleIndex));
+				movie.setPosterPath(cursor.getString(posterIndex));
+				movie.setOverview(cursor.getString(overviewIndex));
+				movie.setReleaseDate(cursor.getString(releaseIndex));
+				movie.setFavorite(true);
+				favoriteMovies.add(movie);
+			}
+			movies = favoriteMovies;
+			view.onSuccessGetMovies();
+		}
 	}
 }

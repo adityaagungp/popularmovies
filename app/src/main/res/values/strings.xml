@@ -3,6 +3,8 @@
 	<string name="connection_problem">Oops! There is connection problem</string>
 	<string name="content_authority">com.aditya.popularmovies.app</string>
 	<string name="empty_movie">Sorry, there is no movie to display</string>
+	<string name="fail_favorite">Unable to favorite the movie</string>
+	<string name="fail_unfavorite">Unable to not favorite the movie</string>
 	<string name="get_popular">Get Popular</string>
 	<string name="get_top_rated">Get Top Rated</string>
 	<string name="movie_detail">Movie Detail</string>
